@@ -14,7 +14,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
-  SWIFT_api:
+  swift_api:
     build:
       context: .
       dockerfile: Dockerfile
