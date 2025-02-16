@@ -1,6 +1,6 @@
 package com.Remitly.swift.SwiftApi.controllers;
 
-import com.Remitly.swift.SwiftApi.constans.ResponseEntities;
+import com.Remitly.swift.SwiftApi.config.ResponseEntities;
 import com.Remitly.swift.SwiftApi.models.Bank;
 import com.Remitly.swift.SwiftApi.services.BankService;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +13,16 @@ public class BankController {
 
     public BankController(BankService bankService) {
         this.bankService = bankService;
+    }
+
+    @GetMapping("/{swiftCode}")
+    public ResponseEntity<?> showBySwiftCode(@PathVariable String swiftCode){
+        return ResponseEntity.ok(bankService.showBySwiftCode(swiftCode));
+    }
+
+    @GetMapping("/country/{countryISO2code}")
+    public ResponseEntity<?> banksByCountry(@PathVariable String countryISO2code){
+        return ResponseEntity.ok(bankService.banksByCountry(countryISO2code));
     }
 
     @PostMapping

@@ -6,6 +6,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import lombok.Getter;
 
+import java.util.Map;
+
 @Entity
 public class Bank {
     @Getter
@@ -38,11 +40,11 @@ public class Bank {
     }
 
     public void setCountryISO2(String countryISO2) {
-        this.countryISO2 = countryISO2;
+        this.countryISO2 = countryISO2.toUpperCase();
     }
 
     public void setCountryName(String countryName) {
-        this.countryName = countryName;
+        this.countryName = countryName.toUpperCase();
     }
 
     public void setHeadquarter(boolean headquarter) {
@@ -57,11 +59,36 @@ public class Bank {
         this.id = id;
         this.address = address;
         this.bankName = bankName;
-        this.countryISO2 = countryISO2;
-        this.countryName = countryName;
+        this.countryISO2 = countryISO2.toUpperCase();
+        this.countryName = countryName.toUpperCase();
+        this.isHeadquarter = isHeadquarter;
+        this.swiftCode = swiftCode;
+    }
+
+    public Bank(String address, String bankName, String countryISO2, String countryName, boolean isHeadquarter, String swiftCode) {
+        this.address = address;
+        this.bankName = bankName;
+        this.countryISO2 = countryISO2.toUpperCase();
+        this.countryName = countryName.toUpperCase();
         this.isHeadquarter = isHeadquarter;
         this.swiftCode = swiftCode;
     }
 
     public Bank() {}
+
+    public Map<String, Object> asMap(boolean withCountryName){
+        Map<String, Object> map =  Map.of(
+                "address", this.address,
+                "bankName", this.bankName,
+                "countryISO2", this.countryISO2,
+                "countryName", this.countryName,
+                "isHeadquarter", this.isHeadquarter,
+                "swiftCode", this.swiftCode
+        );
+
+        if(withCountryName){
+            map = (Map<String, Object>) map.remove("countryName");
+        }
+        return map;
+    }
 }

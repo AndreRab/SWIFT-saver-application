@@ -1,4 +1,4 @@
-package com.Remitly.swift.SwiftApi.constans;
+package com.Remitly.swift.SwiftApi.config;
 
 import org.springframework.http.ResponseEntity;
 

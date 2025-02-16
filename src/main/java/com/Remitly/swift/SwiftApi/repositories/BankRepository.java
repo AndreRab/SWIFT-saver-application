@@ -10,4 +10,6 @@ public interface BankRepository extends JpaRepository<Bank, Long> {
 
     List<Bank> findAllBySwiftCode(String swiftCode);
 
+    List<Bank> findAllByCountryISO2(String countryISO2);
+
 }
