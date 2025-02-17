@@ -7,6 +7,7 @@ import com.opencsv.CSVReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -21,6 +22,7 @@ import java.util.stream.IntStream;
 public class CSVDataLoader {
     @Autowired
     private BankRepository bankRepository;
+    private final Object lock = new Object();
 
     @Bean
     CommandLineRunner loadCSV() {
@@ -30,15 +32,21 @@ public class CSVDataLoader {
                     List<String[]> rows = reader.readAll();
                     Map<String, Integer> nameToIndex = convertColumnsNameToIndex(rows.get(0));
                     for (String[] row : rows) {
-                        if(canAddBank(row[nameToIndex.get(CSVConstants.SWIFT_CODE)])) {
-                            bankRepository.save(new Bank(
-                                    row[nameToIndex.get(CSVConstants.ADDRESS)],
-                                    row[nameToIndex.get(CSVConstants.BANK_NAME)],
-                                    row[nameToIndex.get(CSVConstants.COUNTRY_ISO_2)],
-                                    row[nameToIndex.get(CSVConstants.COUNTRY_NAME)],
-                                    row[nameToIndex.get(CSVConstants.SWIFT_CODE)].endsWith("XXX"),
-                                    row[nameToIndex.get(CSVConstants.SWIFT_CODE)]
-                            ));
+                        synchronized (lock) {
+                            if (canAddBank(row[nameToIndex.get(CSVConstants.SWIFT_CODE)])) {
+                                try {
+                                    bankRepository.save(new Bank(
+                                            row[nameToIndex.get(CSVConstants.ADDRESS)],
+                                            row[nameToIndex.get(CSVConstants.BANK_NAME)],
+                                            row[nameToIndex.get(CSVConstants.COUNTRY_ISO_2)],
+                                            row[nameToIndex.get(CSVConstants.COUNTRY_NAME)],
+                                            row[nameToIndex.get(CSVConstants.SWIFT_CODE)].endsWith("XXX"),
+                                            row[nameToIndex.get(CSVConstants.SWIFT_CODE)]
+                                    ));
+                                } catch (DataIntegrityViolationException e) {
+                                    System.out.println(CSVConstants.DUPLICATE_MESSAGE + e.getMessage());
+                                }
+                            }
                         }
                     }
                 }
@@ -57,9 +65,10 @@ public class CSVDataLoader {
     }
 
     private boolean canAddBank(String swiftCode){
-        if (!(swiftCode.length() > 7 && swiftCode.length() < 12)){
+        if (swiftCode == null || swiftCode.isBlank() || swiftCode.length() <= 7 || swiftCode.length() >= 12) {
             return false;
         }
-        return bankRepository.findAllBySwiftCode(swiftCode).isEmpty();
+        return !bankRepository.existsBySwiftCode(swiftCode);
     }
+
 }

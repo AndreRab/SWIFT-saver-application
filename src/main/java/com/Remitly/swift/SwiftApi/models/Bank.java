@@ -1,11 +1,9 @@
 package com.Remitly.swift.SwiftApi.models;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 
+import java.util.HashMap;
 import java.util.Map;
 
 @Entity
@@ -25,6 +23,7 @@ public class Bank {
     @Getter
     private boolean isHeadquarter;
     @Getter
+    @Column(unique = true, nullable = false)
     private String swiftCode;
 
     public void setId(Long id) {
@@ -76,19 +75,19 @@ public class Bank {
 
     public Bank() {}
 
-    public Map<String, Object> asMap(boolean withCountryName){
-        Map<String, Object> map =  Map.of(
-                "address", this.address,
-                "bankName", this.bankName,
-                "countryISO2", this.countryISO2,
-                "countryName", this.countryName,
-                "isHeadquarter", this.isHeadquarter,
-                "swiftCode", this.swiftCode
-        );
+    public Map<String, Object> asMap(boolean withCountryName) {
+        Map<String, Object> map = new HashMap<>();
+        map.put("address", this.address);
+        map.put("bankName", this.bankName);
+        map.put("countryISO2", this.countryISO2);
+        map.put("countryName", this.countryName);
+        map.put("isHeadquarter", this.isHeadquarter);
+        map.put("swiftCode", this.swiftCode);
 
-        if(withCountryName){
-            map = (Map<String, Object>) map.remove("countryName");
+        if (!withCountryName) {
+            map.remove("countryName");
         }
         return map;
     }
+
 }

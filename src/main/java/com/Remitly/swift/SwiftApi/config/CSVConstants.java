@@ -11,4 +11,5 @@ public class CSVConstants {
 
     public final static String SUCCESS_MESSAGE = "🚀 Init banks download ⏳ ... ✅ Successfully completed! ✔️";
     public final static String ERROR_MESSAGE = "❌ Can't load file with init banks: ";
+    public final static String DUPLICATE_MESSAGE = "Duplicate SWIFT code detected: ";
 }

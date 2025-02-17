@@ -12,4 +12,5 @@ public interface BankRepository extends JpaRepository<Bank, Long> {
 
     List<Bank> findAllByCountryISO2(String countryISO2);
 
+    boolean existsBySwiftCode(String swiftCode);
 }
