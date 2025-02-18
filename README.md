@@ -48,7 +48,7 @@ This guide explains how to run and stop the entire application.
 4. **Run an application**
    ```
    ./gradlew deploy 
-After the last step, the project starts deploying with tests and application containerization. After successful deployment, you should be able to call the API at http://localhost:8080.
+After the last step, the project begins deploying with tests and application containerization. After a successful deployment, you should wait a few minutes while the Java Spring application starts in the container. After that, you should be able to call the API at http://localhost:8080.
 
 5. **Stop the application**
 
