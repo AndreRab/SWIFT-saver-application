@@ -5,14 +5,13 @@ import com.Remitly.swift.SwiftApi.models.Bank;
 import com.Remitly.swift.SwiftApi.services.BankService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.http.ResponseEntity;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 class BankControllerTest {
@@ -44,7 +43,7 @@ class BankControllerTest {
 
         ResponseEntity<?> response = bankController.showBySwiftCode("UNKNOWN");
 
-        assertEquals(200, response.getStatusCodeValue());
+        assertEquals(400, response.getStatusCodeValue());
         assertEquals(Collections.emptyMap(), response.getBody());
         verify(bankService).showBySwiftCode("UNKNOWN");
     }
@@ -63,12 +62,16 @@ class BankControllerTest {
 
     @Test
     void banksByCountryWhenNoBanks() {
-        when(bankService.banksByCountry("DE")).thenReturn(Collections.emptyMap());
-
+        Map<String,Object> bankMap = Map.of(
+                "countryISO2", "DE",
+                "countryName", "DE",
+                "swiftCodes", new ArrayList<>()
+        );
+        when(bankService.banksByCountry("DE")).thenReturn(bankMap);
         ResponseEntity<?> response = bankController.banksByCountry("DE");
 
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(Collections.emptyMap(), response.getBody());
+        assertEquals(400, response.getStatusCodeValue());
+        assertEquals(bankMap, response.getBody());
         verify(bankService).banksByCountry("DE");
     }
 

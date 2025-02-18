@@ -6,6 +6,9 @@ import com.Remitly.swift.SwiftApi.services.BankService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+import java.util.Map;
+
 @RestController
 @RequestMapping("/v1/swift-codes")
 public class BankController {
@@ -17,13 +20,21 @@ public class BankController {
 
     @GetMapping("/{swiftCode}")
     public ResponseEntity<?> showBySwiftCode(@PathVariable String swiftCode){
-        return ResponseEntity.ok(bankService.showBySwiftCode(swiftCode));
+        Map<String, Object> body = bankService.showBySwiftCode(swiftCode);
+        return (body.isEmpty())? ResponseEntity.badRequest().body(body) :
+                ResponseEntity.ok(body);
     }
 
     @GetMapping("/country/{countryISO2code}")
-    public ResponseEntity<?> banksByCountry(@PathVariable String countryISO2code){
-        return ResponseEntity.ok(bankService.banksByCountry(countryISO2code));
+    public ResponseEntity<?> banksByCountry(@PathVariable String countryISO2code) {
+        Map<String, Object> body = bankService.banksByCountry(countryISO2code);
+        List<?> swiftCodes = (List<?>) body.get("swiftCodes");
+        return (swiftCodes.isEmpty())? ResponseEntity.badRequest().body(body) :
+                ResponseEntity.ok(body);
     }
+
+
+
 
     @PostMapping
     public ResponseEntity<?> addBank(@RequestBody Bank bank){

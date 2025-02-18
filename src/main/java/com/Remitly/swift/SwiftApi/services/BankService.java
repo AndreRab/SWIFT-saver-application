@@ -1,7 +1,11 @@
 package com.Remitly.swift.SwiftApi.services;
 
+import com.Remitly.swift.SwiftApi.config.BankServiceLoggers;
+import com.Remitly.swift.SwiftApi.config.CSVConstants;
 import com.Remitly.swift.SwiftApi.models.Bank;
 import com.Remitly.swift.SwiftApi.repositories.BankRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -11,6 +15,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class BankService {
+    private static final Logger logger = LoggerFactory.getLogger(BankService.class);
     private final BankRepository bankRepository;
 
     public BankService(BankRepository bankRepository) {
@@ -20,22 +25,21 @@ public class BankService {
     public Map<String, Object> showBySwiftCode(String swiftCode) {
         List<Bank> bankList = bankRepository.findAllBySwiftCode(swiftCode);
         if(bankList.isEmpty()){
+            logger.warn(BankServiceLoggers.NO_BANK_SWIFT_CODE, swiftCode);
             return Map.of();
         }
         Bank bank = bankList.get(0);
-        if(bank.isHeadquarter()){
-            return showHeadquarterBySwiftCode(bank);
-        }
-        return showBranchBySwiftCode(bank);
+        return bank.isHeadquarter()? showHeadquarterBySwiftCode(bank) : showBranchBySwiftCode(bank);
     }
 
     private Map<String, Object> showHeadquarterBySwiftCode(Bank bank){
+        logger.info(BankServiceLoggers.HEAD_QUARTER_MESSAGE, bank.getSwiftCode());
         Map<String, Object> map = bank.asMap(true);
         String branchCode = bank.getSwiftCode().substring(0, 8);
         List<Bank> branchesBank = bankRepository.findAll().
                 stream().
                 filter(b -> b.getSwiftCode().substring(0, 8).equals(branchCode)).
-                collect(Collectors.toList());
+                toList();
         map.put("branches", branchesBank.
                         stream().
                         map(b -> b.asMap(false)).
@@ -45,13 +49,16 @@ public class BankService {
     }
 
     private Map<String, Object> showBranchBySwiftCode(Bank bank){
+        logger.info(BankServiceLoggers.BRANCH_MESSAGE, bank.getSwiftCode());
         return bank.asMap(true);
     }
 
     public Map<String, Object> banksByCountry(String countryCode) {
+        logger.info(BankServiceLoggers.COUNTRY_MESSAGE, countryCode);
         List<Bank> banks = bankRepository.findAllByCountryISO2(countryCode);
 
         if(banks.isEmpty()){
+            logger.warn(BankServiceLoggers.NO_BANK_COUNTRY, countryCode);
             return Map.of(
                     "countryISO2", countryCode,
                     "countryName", countryCode,
@@ -70,22 +77,27 @@ public class BankService {
 
     private boolean canAddBank(Bank bank){
         if (bank.getSwiftCode() == null
-                || !(bank.getSwiftCode().length() > 7 && bank.getSwiftCode().length() < 12)){
+                || !(bank.getSwiftCode().length() >= CSVConstants.MIN_SWIFT_CODE_LENGTH && bank.getSwiftCode().length() <= CSVConstants.MAX_SWIFT_CODE_LENGTH)){
+            logger.warn(BankServiceLoggers.INVALID_SWIFT_CODE, bank.getSwiftCode());
             return false;
         }
-        return bankRepository.findAllBySwiftCode(bank.getSwiftCode()).isEmpty();
+        if(!bankRepository.findAllBySwiftCode(bank.getSwiftCode()).isEmpty()){
+            logger.warn(BankServiceLoggers.BANK_EXISTS, bank.getSwiftCode());
+            return false;
+        }
+        return true;
     }
 
     public Bank addBank(Bank bank){
-        if (!canAddBank(bank)){
-            return null;
-        }
-        return bankRepository.save(bank);
+        logger.info(BankServiceLoggers.ADD_BANK_MESSAGE, bank);
+        return canAddBank(bank)? bankRepository.save(bank) : null;
     }
 
     public boolean deleteBySwiftCode(String swiftCode){
+        logger.info(BankServiceLoggers.DELETE_BANK_MESSAGE, swiftCode);
         List<Bank> bankAsList = bankRepository.findAllBySwiftCode(swiftCode);
         if(bankAsList.isEmpty()){
+            logger.warn(BankServiceLoggers.NO_BANK_SWIFT_CODE, swiftCode);
             return false;
         }
         bankRepository.delete(bankAsList.get(0));
